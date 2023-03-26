@@ -1,0 +1,5 @@
+python3 pubsub.py --topic topic_1 --ca_file ~/certs/Amazon-root-CA-1.pem
+--cert ~/certs/certificate.pem.crt --key ~/certs/private.pem.key --endpoint
+a1im2ymdsxxx83-ats.iot.us-wet-2.amazonaws.com
+
+pubsub.py - file/program
