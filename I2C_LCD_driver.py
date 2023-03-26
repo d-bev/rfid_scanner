@@ -129,7 +129,6 @@ class lcd:
       self.lcd_device.write_cmd(((data & ~En) | LCD_BACKLIGHT))
       sleep(.0001)
 
-   # write a portion of a command
    def lcd_write_four_bits(self, data):
       self.lcd_device.write_cmd(data | LCD_BACKLIGHT)
       self.lcd_strobe(data)
@@ -140,6 +139,7 @@ class lcd:
       self.lcd_write_four_bits(mode | ((cmd << 4) & 0xF0))
 
    # write a character to lcd (or character rom) 0x09: backlight | RS=DR<
+   # works!
    def lcd_write_char(self, charvalue, mode=1):
       self.lcd_write_four_bits(mode | (charvalue & 0xF0))
       self.lcd_write_four_bits(mode | ((charvalue << 4) & 0xF0))

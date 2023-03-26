@@ -7,6 +7,7 @@ from mfrc522 import SimpleMFRC522
 
 #Include the buzzer pin
 buzzer = 19
+i2c = 27
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -17,7 +18,6 @@ lcd = I2C_LCD_driver.lcd()
 
 # Create a object for the RFID module
 scan = SimpleMFRC522()
-
 
 try:
         print("Now place your Tag to scan")
