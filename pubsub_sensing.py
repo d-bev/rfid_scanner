@@ -6,7 +6,6 @@ import sys
 import threading
 from uuid import uuid4
 import json
-from sense_hat import SenseHat
 from time import *
 
 import I2C_LCD_driver
@@ -16,8 +15,6 @@ from mfrc522 import SimpleMFRC522
 # pin locations
 buzzer = 19
 i2c = 27
-
-sense = SenseHat()
 
 MSG_COUNT = 1
 
