@@ -4,13 +4,22 @@
 from awscrt import mqtt
 import sys
 import threading
-import time
 from uuid import uuid4
 import json
 from sense_hat import SenseHat
+from time import *
+
+import I2C_LCD_driver
+import RPi.GPIO as GPIO
+from mfrc522 import SimpleMFRC522
+
+# pin locations
+buzzer = 19
+i2c = 27
 
 sense = SenseHat()
 
+MSG_COUNT = 1
 
 # This sample uses the Message Broker for AWS IoT to send and receive messages
 # through an MQTT connection. On startup, the device connects to the server,
@@ -70,7 +79,8 @@ def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     print("Received message from topic '{}': {}".format(topic, payload))
     global received_count
     received_count += 1
-    if received_count == cmdUtils.get_command("count"):
+    #if received_count == cmdUtils.get_command("count"):
+    if received_count == MSG_COUNT:
         received_all_event.set()
 
 if __name__ == '__main__':
@@ -104,8 +114,36 @@ if __name__ == '__main__':
     # This step is skipped if message is blank.
     # This step loops forever if count was set to 0.
     
+    """
+        Scanning the RFID card and grabbing the ID read
+    """
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    GPIO.setup(buzzer,GPIO.OUT)
 
+    # Create a object for the LCD
+    lcd = I2C_LCD_driver.lcd()
 
+    # Create a object for the RFID module
+    scan = SimpleMFRC522()
+
+    try:
+            print("Now place your Tag to scan")
+            lcd.lcd_display_string("Place your Tag",1,1)
+            #scan.write("Tag ID")
+            id,Tag = scan.read()
+            print("Your Tag ID is : " + str(id))
+            lcd.lcd_clear()
+            lcd.lcd_display_string("Tag ID",1,5)
+            lcd.lcd_display_string(str(id),2,1)
+
+            GPIO.output(buzzer,GPIO.HIGH)
+            sleep(0.5)
+            GPIO.output(buzzer,GPIO.LOW)
+
+    finally:
+            GPIO.cleanup()
+    
    
     if message_count == 0:
         print ("Sending messages until program killed")
@@ -114,25 +152,10 @@ if __name__ == '__main__':
 
     publish_count = 1
     while (publish_count <= message_count) or (message_count == 0):
-        pressure = sense.get_pressure()
-        #print(pressure)
-
-        temp = sense.get_temperature()
-        #print(temp)
-
-        humidity = sense.get_humidity()
-        #print(humidity)
-
-        t = round(temp, 1)
-        p = round(pressure, 1)
-        h = round(humidity, 1)
-
+        
         # Create the message
         # str() converts the value to a string so it can be concatenated
-        message1 = "Temperature: " + str(t) + " Pressure: " + str(p) + " Humidity: " + str(h)
-
-        
-        #message = "{} [{}]".format(message_string + message1, publish_count)
+        message1 = "Scanned ID: " + str(id)
         
         message = "{} [{}]".format(message1, publish_count)
                     
