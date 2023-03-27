@@ -1,16 +1,16 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0.
 
+from uuid import uuid4
 from awscrt import mqtt
+from mfrc522 import SimpleMFRC522
 import sys
 import threading
-from uuid import uuid4
 import json
-from time import *
-
+import time
 import I2C_LCD_driver
 import RPi.GPIO as GPIO
-from mfrc522 import SimpleMFRC522
+
 
 # pin locations
 buzzer = 19
@@ -107,13 +107,11 @@ if __name__ == '__main__':
     subscribe_result = subscribe_future.result()
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
-    # Publish message to server desired number of times.
-    # This step is skipped if message is blank.
-    # This step loops forever if count was set to 0.
     
     """
         Scanning the RFID card and grabbing the ID read
     """
+    
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(buzzer,GPIO.OUT)
@@ -123,24 +121,44 @@ if __name__ == '__main__':
 
     # Create a object for the RFID module
     scan = SimpleMFRC522()
+    
+    valid_IDs = [401633543012]
+    invalid_IDs = 214991773344
 
     try:
             print("Now place your Tag to scan")
             lcd.lcd_display_string("Place your Tag",1,1)
             #scan.write("Tag ID")
             id,Tag = scan.read()
-            print("Your Tag ID is : " + str(id))
-            lcd.lcd_clear()
-            lcd.lcd_display_string("Tag ID",1,5)
-            lcd.lcd_display_string(str(id),2,1)
-
-            GPIO.output(buzzer,GPIO.HIGH)
-            sleep(0.5)
-            GPIO.output(buzzer,GPIO.LOW)
+            
+            if id in valid_IDs:
+                # "pleasant" beeps
+                GPIO.output(buzzer,GPIO.HIGH)
+                time.sleep(0.1)
+                GPIO.output(buzzer,GPIO.LOW)
+                time.sleep(0.1)
+                GPIO.output(buzzer,GPIO.HIGH)
+                time.sleep(0.1)
+                GPIO.output(buzzer,GPIO.LOW)
+            else:
+                # scream
+                GPIO.output(buzzer,GPIO.HIGH)
+                time.sleep(0.75)
+                GPIO.output(buzzer,GPIO.LOW)
+            
+            #print("Your Tag ID is : " + str(id))
+            #lcd.lcd_clear()
+            #lcd.lcd_display_string("Tag ID",1,5)
+            #lcd.lcd_display_string(str(id),2,1)
 
     finally:
             GPIO.cleanup()
+            
+    # Publish message to server desired number of times.
+    # This step is skipped if message is blank.
+    # This step loops forever if count was set to 0.    
     
+    message_count = MSG_COUNT
    
     if message_count == 0:
         print ("Sending messages until program killed")
@@ -159,7 +177,6 @@ if __name__ == '__main__':
         print("Publishing message to topic '{}': {}".format(message_topic, message))
         message_json = json.dumps(message)
         
-
         
         mqtt_connection.publish(
             topic=message_topic,
