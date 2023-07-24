@@ -1,5 +1,7 @@
 # rfid_scanner_project
 
+A simple python script that implements a functional RFID scanner via Rasperry Pi
+
 ## Setup
 
 - sudo raspi-config (and turn on I2C in the Interface options)
